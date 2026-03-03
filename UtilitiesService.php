@@ -26,6 +26,14 @@ class UtilitiesService
         return getenv('SERVER_APACHE_TYPE') != 'prod';
     }
 	
+    /**
+     * @return bool
+     */
+    public static function isProduction(): bool
+    {
+        return !$this->isLocalhost() && !$this->isDevelopment();
+    }
+	
 	/**
 	 * @param array $target
 	 * @param $element
