@@ -15,16 +15,14 @@ class UtilitiesService
     /**
      * @return bool
      */
-    public static function isLocalhost(): bool
-    {
+    public static function isLocalhost(): bool {
         return strpos($_SERVER["SERVER_NAME"], "localhost") === 0;
     }
 
     /**
      * @return bool
      */
-    public static function isDevelopment(): bool
-    {
+    public static function isDevelopment(): bool {
         return getenv('SERVER_APACHE_TYPE') != 'prod';
     }
 	
@@ -33,8 +31,7 @@ class UtilitiesService
 	 * @param $element
 	 * @return array
 	 */
-    public static function array_exclude(array $target, $element): array
-    {
+    public static function array_exclude(array $target, $element): array {
         $tmp = [];
 
         foreach($target as $t) {
@@ -52,8 +49,7 @@ class UtilitiesService
 	 * @param int $precision
 	 * @return float
 	 */
-    public static function number_format($number, int $precision): float
-    {
+    public static function number_format($number, int $precision): float {
         return floatval(bcadd(floatval($number), 0, $precision));
     }
 
@@ -73,8 +69,7 @@ class UtilitiesService
 	 * @param int $precision
      * @return float
      */
-    public static function display2number($number, int $precision = 3): float
-    {
+    public static function display2number($number, int $precision = 3): float {
     	$number = "$number";
 
     	# theoretically the separator for the thousands
@@ -101,8 +96,7 @@ class UtilitiesService
      * @param float|int $number
      * @return string
      */
-    public static function number2display($number): string
-	{
+    public static function number2display($number): string {
 		if(is_string($number) || is_null($number)) {
 			try {
 				$number = floatval($number);
@@ -117,8 +111,7 @@ class UtilitiesService
      * @param string $target
      * @return string
      */
-    public static function replace(array $chars, string $target): string
-    {
+    public static function replace(array $chars, string $target): string {
         foreach($chars as $char => $replacement) {
             $target = str_replace($char, $replacement, $target);
         }
@@ -131,8 +124,7 @@ class UtilitiesService
      * @param bool $special_chars
      * @return string
      */
-    public static function generateRandomString(int $length, bool $special_chars = false): string
-    {
+    public static function generateRandomString(int $length, bool $special_chars = false): string {
         $result = "";
         $charset = self::charset;
         
@@ -152,8 +144,7 @@ class UtilitiesService
      * @param string $filename
      * @return string
      */
-    public static function getFileExtension(string $filename): string
-    {
+    public static function getFileExtension(string $filename): string {
         preg_match("/\..{1,6}$/", $filename, $matches);
 
         return !empty($matches) ? $matches[0] : "";
@@ -190,8 +181,7 @@ class UtilitiesService
 		string $target, 
 		int $type = 1, 
 		string $replace = "*"
-	): string 
-	{
+	): string {
 		$tmp = "";
 		
 		switch($type) {
@@ -227,8 +217,7 @@ class UtilitiesService
 	public static function is_pdf(
 		string $tmpname,
 		string $filename
-	): bool
-	{
+	): bool {
 		if(!file_exists($tmpname)) {
 	        return false;
 	    }
@@ -313,8 +302,7 @@ class UtilitiesService
 		$num1,
 		$num2,
 		int $precision = 3
-	): float
-	{
+	): float {
 		$num1 = $num1 ?? 0;
 		$num2 = $num2 ?? 0;
 
@@ -329,4 +317,106 @@ class UtilitiesService
 	{
 	    return preg_match(self::emailRegex, $target);
 	}
+
+	/**
+	 * @param mixed $number
+	 * @param int $precision
+	 * @return float|int
+	 */
+    public static function floor($number, int $precision = 0) {
+        $n = floor(floatval($number));
+
+        if($precision) {
+            $n = self::number_format($n, $precision);
+        }
+
+        return $n;
+    }
+
+	/**
+	 * @param mixed $number
+	 * @param int $precision
+	 * @return float|int
+	 */
+    public static function ceil($number, int $precision = 0) {
+        $n = ceil(floatval($number));
+
+        if($precision) {
+            $n = self::number_format($n, $precision);
+        }
+
+        return $n;
+    }
+
+	/**
+	 * @param mixed $number
+	 * @param int $precision
+	 * @return float|int
+	 */
+    public static function round($number, int $precision = 0) {
+        $n = round(floatval($number));
+
+        if($precision) {
+            $n = self::number_format($n, $precision);
+        }
+
+        return $n;
+    }
+
+	/**
+	 * @param array $array
+	 * @return bool
+	 */
+	public static function array_unique(array $array): bool {
+        return count(array_unique($array)) === 1;
+    }
+
+	/**
+	 * @param mixed $target
+	 * @param int|float $min
+	 * @param int|float $max
+	 * @return bool
+	 */
+    public static function in_range($target, $min, $max): bool {
+        $target = floatval($target);
+        return $target >= floatval($min) && $target <= floatval($max);
+    }
+
+	/**
+	 * @param mixed $number
+	 * @param int $precision
+	 * @return int
+	 */
+    public static function truncate_num($number, int $precision): int
+    {
+        $length = strlen(strval($number)) - $precision;
+        $length = $length < 0 ? 0 : $length;
+        return intval(
+            substr(
+                $number, 
+                $length,
+                strlen(strval($number))
+            )
+        );
+    }
+	public static function array_trim(array $target) {
+        return array_filter($target, function($item) {
+            if(!empty($item)) {
+                return $item;
+            }
+        });
+    }
+
+    /**
+     * per risolvere
+     * 
+     * $target instanceof stdClass = false
+     * quando $target è stdClass
+     * 
+     * @param mixed $target
+     * @return bool
+     */
+    public static function is_stdClass($target): bool {
+        return !@empty($target) && get_class($target) === "stdClass";
+    }
 }
