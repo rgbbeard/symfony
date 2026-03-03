@@ -9,8 +9,12 @@ class UtilitiesService
 	private const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     private const special_chars = "-_.,";
 
-    public function __construct()
-    {}
+    private EntityManagerInterface $em;
+
+    public function __construct(EntityManagerInterface $em)
+    {
+        $this->em = $em;
+    }
 
     /**
      * @return bool
