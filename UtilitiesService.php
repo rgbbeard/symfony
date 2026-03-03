@@ -2,6 +2,8 @@
 
 namespace App\Service;
 
+use Doctrine\ORM\EntityManagerInterface;
+
 class UtilitiesService
 {
 	protected const displayNumberRegex = "/^-?(\d{1,3}|\.\d{3}){0,3}(\,\d{1,3})?$/";
