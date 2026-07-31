@@ -222,54 +222,142 @@ class UtilitiesService
 	}
 
 	/**
+	 * same as str_contains
+	 * but it allows you to check
+	 * multiple strings at once
+	 * 
+	 * @param array|string $strings
+	 * @param string $target
+	 * @return bool
+	 */
+	function has(array|string $strings, string $target): bool {
+	    $found = 0;
+	
+	    if(is_array($strings)) {
+	        foreach($strings as $s) {
+	            if(str_contains($target, $s)) {
+	                $found++;
+	            }
+	        }
+	    } else {
+	        return str_contains($target, $strings);
+	    }
+	    
+	    return $found > 0;
+	}
+	
+	/** 
 	 * checks the file header
 	 * 
 	 * @param string $tmpname
 	 * @param string $filename
+	 * @param bool $ignore_extension
 	 * @return bool
 	 */
-	public static function is_pdf(
-		string $tmpname,
-		string $filename
-	): bool {
-		if(!file_exists($tmpname)) {
+	function is_pdf(string $tmpname, string $filename, bool $ignore_extension = false): bool {
+	    if(!file_exists($tmpname)) {
 	        return false;
 	    }
-
+	
 	    $handle = fopen($tmpname, "rb");
 	    if(!$handle) {
 	        return false;
 	    }
-
+	
 	    $first_line = fgets($handle, 20);
 	    if(preg_match("/\r/", $first_line)) {
-	    	$tmp = preg_split("/\r/", $first_line);
-	    	$first_line = $tmp[0];
+	        $tmp = preg_split("/\r/", $first_line);
+	        $first_line = $tmp[0];
 	    }
-
+	
 	    fseek($handle, max(-1024, -filesize($tmpname)), SEEK_END);
 	    $last_chunk = fread($handle, 1024);
-
+	
 	    fclose($handle);
-
+	
 	    /**
 	     * we expect the very first line
 	     * to be the pdf version used to create the document
 	     * 
 	     * NOTE: not all the pdfs have the version on one line
 	     * 
-	     * example: %PDF-1.5
+	     * example header: %PDF-1.5
 	     */
 	    if(!preg_match("/^%PDF-[0-9]\.[0-9]/", trim($first_line))) {
 	        return false;
 	    }
-
+	
 	    # looks for %%EOF at the end of the file
 	    if(!preg_match("/%%EOF/", $last_chunk)) {
 	        return false;
 	    }
-
+	
+	    if($ignore_extension) {
+	        return true;
+	    }
+	
 	    return preg_match("/\.pdf$/i", $filename);
+	}
+	
+	/**
+	 * @param string $tmpname
+	 * @param string $filename
+	 * @param bool $ignore_extension
+	 * @return bool
+	 */
+	function is_xls(string $tmpname, string $filename, bool $ignore_extension = false): bool {
+	    if(!file_exists($tmpname)) {
+	        return false;
+	    }
+	
+	    $body = file_get_contents($tmpname);
+	
+	    if(!has(array(
+	        "[Content_Types].xml",
+	        "workbook.xml"
+	    ), $body)) {
+	        return false;
+	    }
+	
+	    if (!has("xl/", $body)) {
+	        return false;
+	    }
+	
+	    if($ignore_extension) {
+	        return true;
+	    }
+	
+	    return boolval(preg_match("/\.xls[x]?$/", $filename));
+	}
+	
+	/**
+	 * @param string $tmpname
+	 * @param string $filename
+	 * @param bool $ignore_extension
+	 * @return bool
+	 */
+	function is_doc(string $tmpname, string $filename, bool $ignore_extension = false): bool {
+	    if(!file_exists($tmpname)) {
+	        return false;
+	    }
+	
+	    $body = file_get_contents($tmpname);
+	
+	    if(!has(array(
+	        "[Content_Types].xml"
+	    ), $body)) {
+	        return false;
+	    }
+	
+	    if (!has("word/", $body)) {
+	        return false;
+	    }
+	
+	    if($ignore_extension) {
+	        return true;
+	    }
+	
+	    return boolval(preg_match("/\.doc[x]?$/", $filename));
 	}
 
 	/**
@@ -337,7 +425,7 @@ class UtilitiesService
 	 * @param int $precision
 	 * @return float|int
 	 */
-    public static function floor($number, int $precision = 0) {
+    public static function floor($number, int $precision = 0): float|int {
         $n = floor(floatval($number));
 
         if($precision) {
@@ -352,7 +440,7 @@ class UtilitiesService
 	 * @param int $precision
 	 * @return float|int
 	 */
-    public static function ceil($number, int $precision = 0) {
+    public static function ceil($number, int $precision = 0): float|int {
         $n = ceil(floatval($number));
 
         if($precision) {
@@ -367,7 +455,7 @@ class UtilitiesService
 	 * @param int $precision
 	 * @return float|int
 	 */
-    public static function round($number, int $precision = 0) {
+    public static function round($number, int $precision = 0): float|int {
         $n = round(floatval($number));
 
         if($precision) {
@@ -413,7 +501,12 @@ class UtilitiesService
             )
         );
     }
-	public static function array_trim(array $target) {
+
+    /**
+     * @param array $target
+     * @return array
+     */
+	public static function array_trim(array $target): array {
         return array_filter($target, function($item) {
             if(!empty($item)) {
                 return $item;
